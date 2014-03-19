@@ -1,0 +1,6 @@
+EXPORTS
+		_GetLanguageName		@1
+		_LoadScript		       	@2
+		_GetScriptName			@3
+		_GetInitialDirectory	        @4
+		_Convert			@5
