@@ -7,7 +7,7 @@
 typedef char* (WINAPI* PFNGETLANGUAGENAME)();
 typedef char* (WINAPI* PFNGETSCRIPTNAME)();
 typedef char* (WINAPI* PFNGETINITIALDIRECTORY)();
-typedef void  (WINAPI* PFNLOADSCRIPT)(char *txt);
+typedef bool  (WINAPI* PFNLOADSCRIPT)(char *txt);
 typedef bool  (WINAPI* PFNCONVERT)(char *in, char *out, char *err);
 
 class CScriptEngine {

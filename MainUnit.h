@@ -2,6 +2,8 @@
 #ifndef MainUnitH
 #define MainUnitH
 //---------------------------------------------------------------------------
+#define RUN_FROM_IDE
+//---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>

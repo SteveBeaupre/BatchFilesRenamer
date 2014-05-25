@@ -72,7 +72,6 @@ char* EXP_FUNC _GetInitialDirectory()
 
 bool EXP_FUNC _Convert(char *in, char *out, char *err)
 {
-	bool res = false;
 	ZeroMemory(out, MAX_PATH);
 	ZeroMemory(err, 1024);
 
@@ -82,14 +81,18 @@ bool EXP_FUNC _Convert(char *in, char *out, char *err)
 		
 		string Output = PythonScript.GetGlobalString("Output");
 
-		res = Output.length() > 0;
-		if(res){
-			memcpy(out, Output.c_str(), Output.length()); 
-		} else {
-			snprintf(err, 1024, "%s", "Error: Convert() returned null output.");
+		if(strlen(err) > 0)
+			return false;
+
+		if(Output.length() == 0){
+			_snprintf(err, 1024, "%s", "Error: Convert() returned null output.");
+			return false;
 		}
+
+		memcpy(out, Output.c_str(), Output.length()); 
+		return true;
 	}
 
-	return res;
+	return false;
 }
 

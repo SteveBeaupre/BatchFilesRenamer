@@ -42,18 +42,23 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
 {
 	DragAcceptFiles(Handle, TRUE);
 
-	#ifdef _DEBUG
+	#ifdef RUN_FROM_IDE
 	UnicodeString Dir = "C:\\Temp\\Batch Files Renamer\\";
 	SetCurrentDirectory(Dir.c_str());
 	AnsiString AppDir = Dir;
 	#else
 	AnsiString AppDir = ExtractFilePath(Application->ExeName);
+	//AnsiString AppDir = ".\\";
 	#endif
 
 	LuaPlugin = AppDir + "LuaPlugin.dll";
 	PythonPlugin = AppDir + "PythonPlugin.dll";
 
-	ScriptEngine.Load(PythonPlugin.c_str());
+	ScriptEngine.Load(LuaPlugin.c_str());
+
+	// A changer plus tard...
+	LuaMenu->Checked = true;
+	PythonMenu->Checked = false;
 
 	InitializeUI();
 }
@@ -346,7 +351,10 @@ bool __fastcall TMainForm::RunScript(bool Simulate)
 
 	// Load the script
 	AnsiString s = RichEditScriptText->Text.c_str();
-	ScriptEngine.LoadScript(s.c_str());
+	if(!ScriptEngine.LoadScript(s.c_str())){
+		ShowMessage("Unable to load script.");
+		return false;
+	}
 
 	// Output some pre-defined globals variables from the script
 	RichEditScriptOutput->Lines->Add("Language Name: " + UnicodeString(ScriptEngine.GetLanguageName()));

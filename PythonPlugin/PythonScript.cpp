@@ -11,12 +11,72 @@ CPythonScript::~CPythonScript()
 	ClosePython();	
 }
 
+char* ExtractFilePath(char *fullpath)
+{
+	static char Path[MAX_PATH];
+	ZeroMemory(Path, MAX_PATH);
+
+	int Pos = -1;
+	int Size = strlen(fullpath);
+
+	for(int i = Size-1; i >= 0; i--){
+		if(fullpath[i] == '\\'){
+			Pos = i;
+			break;
+		}
+	}
+
+	if(Pos > 0)
+		memcpy(Path, fullpath, Pos); 
+
+	return Path;
+}
+
+// Set paths to directories
+/*void SetPythonPaths(char *AppDir)
+{
+	LPCSTR DllsDir = "\\Python27\\DLLs";
+	LPCSTR LibDir = "\\Python27\\Lib";
+	LPCSTR libtkDir = "\\Python27\\Lib\\lib-tk";
+
+	int PathBufSize = (strlen(AppDir) * 3) + strlen(DllsDir) + strlen(LibDir) + strlen(libtkDir) + 3;
+		
+	char *PythonPaths = new char[PathBufSize];
+	ZeroMemory(PythonPaths, PathBufSize);
+	sprintf(PythonPaths, "%s%s;%s%s;%s%s", AppDir, DllsDir, AppDir, LibDir, AppDir, libtkDir);
+	PySys_SetPath(PythonPaths);
+	delete [] PythonPaths;
+}*/
+
+// Set paths to .zip file
+void SetPythonPaths(char *AppDir)
+{
+	LPCSTR DllsDir = "/DLLs";
+	LPCSTR LibDir = "/Lib";
+	LPCSTR libtkDir = "/Lib/lib-tk";
+	
+	LPCSTR ZipName = "\\Python27.zip";
+
+	int PathBufSize = (strlen(AppDir) * 3) + (strlen(ZipName) * 3) + strlen(DllsDir) + strlen(LibDir) + strlen(libtkDir) + 3;
+		
+	char *PythonPaths = new char[PathBufSize];
+	ZeroMemory(PythonPaths, PathBufSize);
+	sprintf(PythonPaths, "%s%s%s;%s%s%s;%s%s%s", AppDir, ZipName, DllsDir, AppDir, ZipName, LibDir, AppDir, ZipName, libtkDir);
+	PySys_SetPath(PythonPaths);
+	delete [] PythonPaths;
+}
+
 void CPythonScript::InitPython()
 {
 	if(!Initialized){
+
+		Py_NoSiteFlag=1;
 		Py_Initialize();
 		module = PyImport_AddModule("__main__");
-		dictionary = PyModule_GetDict(module); 
+		dictionary = PyModule_GetDict(module);
+
+		SetPythonPaths(ExtractFilePath(Py_GetProgramFullPath()));
+
 		Initialized = true;
 	}
 }
@@ -40,6 +100,8 @@ bool CPythonScript::LoadScriptFromFile(string scriptfile)
 {
 	ResetPython();
 
+	bool res = true;
+
 	try {
 		FILE *f = fopen(scriptfile.c_str(), "rt");
 		if(f){
@@ -47,23 +109,25 @@ bool CPythonScript::LoadScriptFromFile(string scriptfile)
 			fclose(f);
 		}
 	} catch(...) {
-		return false;
+		res = false;
 	}
 
-	return true;
+	return res;
 }
 
 bool CPythonScript::LoadScriptFromText(string scripttext)
 {
 	ResetPython();
 
+	bool res = true;
+
 	try {
 		PyRun_String(scripttext.c_str(), Py_file_input, dictionary, dictionary);
 	} catch(...) {
-		return false;
+		res = false;
 	}
 
-	return true;
+	return res;
 }
 
 void CPythonScript::CallFunction(string name)
@@ -71,34 +135,45 @@ void CPythonScript::CallFunction(string name)
 	//call script function, 0 args, 0 retvals
 	PyObject* pFunc = PyObject_GetAttrString(module, name.c_str());
 	PyObject_CallObject(pFunc, 0);
-	//Py_DECREF(pFunc);
+	Py_XDECREF(pFunc);
 }
 
 bool CPythonScript::SafeCallFunction(string name, char *err)
 {
 	//call script function, 0 args, 0 retvals
 	PyObject* pFunc = PyObject_GetAttrString(module, name.c_str());
-	if(pFunc){
+	if(pFunc)
 		PyObject_CallObject(pFunc, 0);
-		Py_DECREF(pFunc);
-	}
+	Py_XDECREF(pFunc);
 
-	int have_error = PyErr_Occurred() ? 1 : 0;
-	
-	if(have_error){
+	if (PyErr_Occurred()) {
 
-		//const char *pErrMsg = getPythonTraceback();
+		PyObject *errtype, *errvalue, *traceback;
+		PyErr_Fetch(&errtype, &errvalue, &traceback);
+		if(errvalue != NULL) {
+				
+			PyObject *et = PyObject_Str(errtype);
+			PyObject *ev = PyObject_Str(errvalue);
+			PyObject *tb = PyObject_Str(traceback);
 
-		if(!err){
-			string Caption;
-			Caption = "Python: Error in function " + name + "().";
+			//PyObject *lineno = PyObject_GetAttrString(tb, "tb_lineno");
+			//int plain_lineno = PyInt_AsLong(lineno);
+			//Py_DECREF(lineno);
 
-			//MessageBox(0, pErrMsg, Caption.c_str(), MB_OK);
-		} else {
-			sprintf(err, "Python: Error in function %s().", name.c_str());
+			char *s_et = PyString_AsString(et);
+			char *s_ev = PyString_AsString(ev);
+			char *s_tb = PyString_AsString(tb);
+
+			snprintf(err, 1024, "Error: %s", s_ev);
+			//snprintf(err, 1024, "Error (line %d): %s", plain_lineno, s_ev);
+
+			Py_DECREF(et);
+			Py_DECREF(ev);
+			Py_DECREF(tb);
 		}
-
-		return false;
+		Py_XDECREF(errvalue);
+		Py_XDECREF(errtype);
+		Py_XDECREF(traceback);
 	}
 
 	return true;
@@ -110,11 +185,9 @@ string CPythonScript::GetGlobalString(string name)
 
 	PyObject* s = PyDict_GetItemString(dictionary, name.c_str());
 	if(s){
-		PyObject *s_Ansi = PyUnicode_AsEncodedString(s, "utf-8", "");
-		const char *pValue = PyBytes_AS_STRING(s_Ansi);
-		Py_DECREF(s);
-		if(pValue)
-			value = pValue;
+		char *s_Ansi = PyString_AsString(s);
+		if(s_Ansi)
+			value = s_Ansi;
 	}
 
 	return value;
@@ -122,10 +195,10 @@ string CPythonScript::GetGlobalString(string name)
 
 void CPythonScript::SetGlobalString(string name, string value)
 {
-	PyObject *s = PyUnicode_FromString(value.c_str());
+	PyObject *s = PyString_FromString(value.c_str());
 	if(s){
 		PyDict_SetItemString(dictionary, name.c_str(), s);
-		Py_XDECREF(s);
+		Py_DECREF(s);
 	}
 }
 
