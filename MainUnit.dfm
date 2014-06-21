@@ -2,8 +2,8 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'Batch Files Renamer'
-  ClientHeight = 503
-  ClientWidth = 808
+  ClientHeight = 576
+  ClientWidth = 1136
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,122 +18,134 @@ object MainForm: TMainForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object TabControl: TTabControl
+  object Splitter2: TSplitter
+    Left = 529
+    Top = 0
+    Height = 557
+    ExplicitHeight = 576
+  end
+  object ListViewFilesList: TListView
     Left = 0
     Top = 0
-    Width = 808
-    Height = 503
-    Align = alClient
+    Width = 529
+    Height = 557
+    Align = alLeft
+    Columns = <
+      item
+        AutoSize = True
+        Caption = 'Original'
+      end
+      item
+        AutoSize = True
+        Caption = 'Original'
+      end
+      item
+        AutoSize = True
+        Caption = 'Modified'
+      end>
+    GridLines = True
+    MultiSelect = True
+    RowSelect = True
     TabOrder = 0
-    Tabs.Strings = (
-      'Files'
-      'Script')
-    TabIndex = 0
-    OnChange = TabControlChange
-    object FilesListPanel: TPanel
-      Left = 39
-      Top = 48
-      Width = 362
-      Height = 353
-      Color = clActiveCaption
+    ViewStyle = vsReport
+    OnKeyDown = ListViewFilesListKeyDown
+  end
+  object ScriptPanel: TPanel
+    Left = 532
+    Top = 0
+    Width = 604
+    Height = 557
+    Align = alClient
+    Color = clTeal
+    ParentBackground = False
+    TabOrder = 1
+    object Splitter1: TSplitter
+      Left = 1
+      Top = 345
+      Width = 602
+      Height = 3
+      Cursor = crVSplit
+      Align = alTop
+      ExplicitLeft = 3
+      ExplicitTop = 353
+    end
+    object ScriptOutputPanel: TPanel
+      Left = 1
+      Top = 348
+      Width = 602
+      Height = 208
+      Align = alClient
+      Color = clOlive
       ParentBackground = False
       TabOrder = 0
-      object ListViewFilesList: TListView
-        Left = 16
-        Top = 16
-        Width = 329
-        Height = 289
-        Columns = <
-          item
-            AutoSize = True
-            Caption = 'Original'
-          end
-          item
-            AutoSize = True
-            Caption = 'Original'
-          end
-          item
-            AutoSize = True
-            Caption = 'Modified'
-          end>
-        GridLines = True
-        MultiSelect = True
-        RowSelect = True
-        TabOrder = 0
-        ViewStyle = vsReport
-        OnKeyDown = ListViewFilesListKeyDown
-      end
-    end
-    object ScriptPanel: TPanel
-      Left = 422
-      Top = 48
-      Width = 362
-      Height = 353
-      Color = clTeal
-      ParentBackground = False
-      TabOrder = 1
-      object Splitter1: TSplitter
-        Left = 1
-        Top = 265
-        Width = 360
-        Height = 3
-        Cursor = crVSplit
-        Align = alTop
-        ExplicitWidth = 87
-      end
-      object ScriptTextPanel: TPanel
+      object RichEditScriptOutput: TRichEdit
         Left = 1
         Top = 1
-        Width = 360
-        Height = 264
-        Align = alTop
-        Color = clOlive
-        ParentBackground = False
-        TabOrder = 0
-        object RichEditScriptText: TRichEdit
-          Left = 16
-          Top = 15
-          Width = 329
-          Height = 234
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentFont = False
-          ScrollBars = ssBoth
-          TabOrder = 0
-        end
-      end
-      object ScriptOutputPanel: TPanel
-        Left = 1
-        Top = 268
-        Width = 360
-        Height = 84
+        Width = 600
+        Height = 206
         Align = alClient
-        Color = clOlive
-        ParentBackground = False
-        TabOrder = 1
-        object RichEditScriptOutput: TRichEdit
-          Left = 16
-          Top = 20
-          Width = 329
-          Height = 45
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentFont = False
-          ReadOnly = True
-          TabOrder = 0
-        end
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        ReadOnly = True
+        TabOrder = 0
+      end
+    end
+    object ScriptTextPanel: TPanel
+      Left = 1
+      Top = 1
+      Width = 602
+      Height = 344
+      Align = alTop
+      Color = clOlive
+      ParentBackground = False
+      TabOrder = 1
+      object RichEditScriptText: TRichEdit
+        Left = 1
+        Top = 1
+        Width = 600
+        Height = 342
+        Align = alClient
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        ScrollBars = ssBoth
+        TabOrder = 0
       end
     end
   end
+  object StatusBar: TStatusBar
+    Left = 0
+    Top = 557
+    Width = 1136
+    Height = 19
+    Panels = <
+      item
+        Width = 250
+      end
+      item
+        Width = 50
+      end>
+  end
+  object SaveDialog: TSaveDialog
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    Left = 807
+    Top = 33
+  end
+  object OpenDialog: TOpenDialog
+    Options = [ofHideReadOnly, ofAllowMultiSelect, ofEnableSizing]
+    Left = 871
+    Top = 33
+  end
   object MainMenu: TMainMenu
-    Left = 720
-    Top = 88
+    Left = 936
+    Top = 32
     object FileMenu: TMenuItem
       Caption = 'File'
       object AddFilesMenu: TMenuItem
@@ -146,6 +158,10 @@ object MainForm: TMainForm
       end
       object N2: TMenuItem
         Caption = '-'
+      end
+      object ClearListMenu: TMenuItem
+        Caption = 'Clear List'
+        OnClick = ClearListMenuClick
       end
       object LoadListMenu: TMenuItem
         Caption = 'Load List...'
@@ -209,15 +225,5 @@ object MainForm: TMainForm
         OnClick = HidePathsMenuClick
       end
     end
-  end
-  object OpenDialog: TOpenDialog
-    Options = [ofHideReadOnly, ofAllowMultiSelect, ofEnableSizing]
-    Left = 655
-    Top = 89
-  end
-  object SaveDialog: TSaveDialog
-    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 591
-    Top = 89
   end
 end
