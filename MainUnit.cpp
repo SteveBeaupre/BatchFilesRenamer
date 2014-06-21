@@ -32,10 +32,6 @@ bool __fastcall TMainForm::LoadSettings()
 		res = true;
 	}
 
-	#ifdef DEFAULT_TO_PYTHON
-	ScriptLanguage = true;
-	#endif
-
 	HidePathsMenu->Checked = HidePaths;
 	PythonMenu->Checked = ScriptLanguage;
 	LuaMenu->Checked = !ScriptLanguage;
@@ -366,10 +362,11 @@ void __fastcall TMainForm::LuaMenuClick(TObject *Sender)
 {
 	TMenuItem* pmi = dynamic_cast<TMenuItem*>(Sender);
 
-	LuaMenu->Checked = pmi->Tag == 0;
-	PythonMenu->Checked = pmi->Tag == 1;
-	ScriptEngine.Free();
-	ScriptEngine.Load(pmi->Tag == 0 ? LuaPlugin.c_str() : PythonPlugin.c_str());
+	PythonMenu->Checked = pmi->Tag == 0;
+	LuaMenu->Checked = pmi->Tag == 1;
+
+	ScriptEngine.Load(PythonMenu->Checked ? PythonPlugin.c_str() : LuaPlugin.c_str());
+
 	RichEditScriptText->Lines->Clear();
 }
 //---------------------------------------------------------------------------
