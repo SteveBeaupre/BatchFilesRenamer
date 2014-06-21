@@ -17,11 +17,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 bool __fastcall TMainForm::LoadSettings()
 {
 	bool res = false;
-	#ifndef DEFAULT_TO_PYTHON
 	bool ScriptLanguage = false;
-	#else
-	bool ScriptLanguage = true;
-	#endif
 	bool HidePaths = false;
 
 	AnsiString FileName = AppDir + "Settings.set";
@@ -35,6 +31,10 @@ bool __fastcall TMainForm::LoadSettings()
 		f.Close();
 		res = true;
 	}
+
+	#ifdef DEFAULT_TO_PYTHON
+	ScriptLanguage = true;
+	#endif
 
 	HidePathsMenu->Checked = HidePaths;
 	PythonMenu->Checked = ScriptLanguage;
